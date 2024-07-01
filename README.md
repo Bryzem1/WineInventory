@@ -8,11 +8,11 @@ Ensure Node.js is installed and is the latest version:
 node -v
 ```
 
-## Plugins
+## VSCode Plugins
 
-VSCode Plugin: Prettier
+1. "Prettier"
 
-To maintain code formatting consistency, install the Prettier plugin for VSCode. In the setup, choose the option "format on save".
+   To maintain code formatting consistency, install the Prettier plugin for VSCode. In the setup, choose the option "format on save".
 
 ## Run the project
 
@@ -20,6 +20,8 @@ To maintain code formatting consistency, install the Prettier plugin for VSCode.
 npm install
 npm run dev
 ```
+
+Then nevigate to the local url shown below after running "npm run dev".
 
 ## Notes
 
