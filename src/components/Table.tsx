@@ -14,31 +14,31 @@ const data: Person[] = [
     name: "拉菲",
     price: "5100",
     quantity: "5",
-    origin: "Kentucky",
+    origin: "隆河谷",
   },
   {
     name: "小拉菲",
     price: "4396",
     quantity: "6",
-    origin: "Ohio",
+    origin: "Napa",
   },
   {
     name: "木桐",
     price: "10000",
     quantity: "4",
-    origin: "West Virginia",
+    origin: "波尔多",
   },
   {
     name: "玛歌",
     price: "6800",
     quantity: "3",
-    origin: "Nebraska",
+    origin: "勃艮第",
   },
   {
     name: "小玛歌",
     price: "32188",
     quantity: "4",
-    origin: "Nebraska",
+    origin: "托斯卡纳",
   },
 ];
 
