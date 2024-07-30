@@ -1,5 +1,5 @@
 //example data type
-export type Person = {
+export type Wine = {
     name: string
     price: string;
     quantity: string;

@@ -1,9 +1,9 @@
-import Table from "./components/Table";
+import WineListPage from "./components/WineListPage";
 
 function App() {
   return (
     <div>
-      <Table />
+      <WineListPage />
     </div>
   );
 }
