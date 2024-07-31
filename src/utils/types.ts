@@ -4,3 +4,9 @@ export type Wine = {
     quantity: string;
     origin: string;
   };
+
+export interface WineList {
+  listName: string;
+  creationDate: string;
+  link: string;
+}
