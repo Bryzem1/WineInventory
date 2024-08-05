@@ -7,11 +7,13 @@ from models import WineList, Wine
 def home():
     return jsonify({"message": "Welcome to the Wine Inventory API!"})
 
+
 @app.route("/wine_lists", methods=["GET"])
 def get_wine_lists():
     wine_lists = WineList.query.all()
-    json_wine_lists = list(map(lambda x : x.to_json(), wine_lists))
+    json_wine_lists = list(map(lambda x: x.to_json(), wine_lists))
     return jsonify({"winelists": json_wine_lists})
+
 
 @app.route("/wines/<int:list_id>", methods=["GET"])
 def get_wines(list_id):
@@ -23,10 +25,11 @@ def get_wines(list_id):
     #             400,
     #         }
     #     )
-    json_wines = list(map(lambda x : x.to_json(), wines))
+    json_wines = list(map(lambda x: x.to_json(), wines))
     return jsonify({"wines": json_wines})
 
-@app.route("/create_wine_list/", methods=["POST"])
+
+@app.route("/create_wine_list", methods=["POST"])
 def create_wine_list():
     name = request.json.get("name")
     if not name:
@@ -36,7 +39,7 @@ def create_wine_list():
     link = request.json.get("link")
     if not link:
         return jsonify({"error": "Link is required"}), 400
-    
+
     new_wine_list = WineList(name=name, link=link)
     db.session.add(new_wine_list)
     db.session.commit()
