@@ -12,12 +12,14 @@ const WineLLTable = ({ data }: { data: WineList[] }) => {
     const columns = useMemo<MRT_ColumnDef<WineList>[]>(
         () => [
             {
-                accessorKey: "listName",
+                accessorKey: "name",
                 header: "酒单",
                 size: 350,
                 Cell: ({ cell }) => (
                     <Button
                         component={Link}
+                        // TODO: figure out how to use route link without a link field in types.ts
+                        // potential solution: using a prefix + {int: id}
                         to={cell.row.original.link}
                         variant="contained"
                         sx={{ bgcolor: "#9E7D60" }}
@@ -27,7 +29,7 @@ const WineLLTable = ({ data }: { data: WineList[] }) => {
                 ),
             },
             {
-                accessorKey: "creationDate",
+                accessorKey: "createdAt",
                 header: "创建日期",
                 size: 350,
             },
