@@ -64,12 +64,7 @@ def create_wine_list():
     if not name:
         return jsonify({"error": "Name is required"}), 400
 
-    # TODO: remove link when frontend is updated
-    link = request.json.get("link")
-    if not link:
-        return jsonify({"error": "Link is required"}), 400
-
-    new_wine_list = WineList(name=name, link=link)
+    new_wine_list = WineList(name=name)
     db.session.add(new_wine_list)
     db.session.commit()
 
