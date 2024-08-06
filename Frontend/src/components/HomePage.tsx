@@ -18,7 +18,6 @@ function HomePage() {
 
     return (
         <div>
-
             <HomeTable data={wineLists} />
         </div>
     );
