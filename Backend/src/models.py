@@ -1,6 +1,7 @@
 from config import db
 from datetime import datetime
 
+
 class WineList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -16,6 +17,7 @@ class WineList(db.Model):
             "link": self.link,
         }
 
+
 class Wine(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
@@ -25,7 +27,7 @@ class Wine(db.Model):
     origin = db.Column(db.String(80), nullable=False)
 
     # Foreign key linking to the WineList model
-    winelist_id = db.Column(db.Integer, db.ForeignKey('wine_list.id'), nullable=False)
+    winelist_id = db.Column(db.Integer, db.ForeignKey("wine_list.id"), nullable=False)
 
     def to_json(self):
         return {
@@ -37,5 +39,3 @@ class Wine(db.Model):
             "origin": self.origin,
             "winelist_id": self.winelist_id,
         }
-
-    

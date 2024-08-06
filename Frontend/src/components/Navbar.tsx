@@ -30,10 +30,10 @@ export default function Navbar() {
                             href="http://localhost:5173/"
                             sx={{ bgcolor: "#9E7D60" }}
                         >
-                            Home
+                            主页
                         </Button>
                     </Typography>
-                    <Button color="inherit">Login</Button>
+                    <Button color="inherit">登陆</Button>
                 </Toolbar>
             </AppBar>
         </Box>

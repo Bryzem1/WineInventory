@@ -8,9 +8,8 @@ function App() {
         <Router>
             <Navbar />
             <Routes>
-                {/* TODO: make the router id suffix to point to the correct wine list*/}
-                <Route path="/wine-list/:id" element={<WineListPage />}></Route>
                 <Route path="/" element={<HomePage />}></Route>
+                <Route path="/wine-list/:id" element={<WineListPage />}></Route>
             </Routes>
         </Router>
     );

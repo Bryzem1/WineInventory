@@ -15,18 +15,47 @@ def get_wine_lists():
     return jsonify({"winelists": json_wine_lists})
 
 
-@app.route("/wines/<int:list_id>", methods=["GET"])
+@app.route("/wine_list/<int:list_id>", methods=["GET"])
 def get_wines(list_id):
     wines = Wine.query.filter_by(winelist_id=list_id).all()
-    # if not wines:
-    #     return (
-    #         {
-    #             jsonify({"message": "Target list id does not exist"}),
-    #             400,
-    #         }
-    #     )
     json_wines = list(map(lambda x: x.to_json(), wines))
     return jsonify({"wines": json_wines})
+
+
+@app.route("/create_wine/<int:list_id>", methods=["POST"])
+def create_wine(list_id):
+    name = request.json.get("name")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    vintage = request.json.get("vintage")
+    if not vintage:
+        return jsonify({"error": "Vintage is required"}), 400
+
+    price = request.json.get("price")
+    if not price:
+        return jsonify({"error": "Price is required"}), 400
+
+    quantity = request.json.get("quantity")
+    if not quantity:
+        return jsonify({"error": "Quantity is required"}), 400
+
+    origin = request.json.get("origin")
+    if not origin:
+        return jsonify({"error": "Origin is required"}), 400
+
+    new_wine = Wine(
+        name=name,
+        vintage=vintage,
+        price=price,
+        quantity=quantity,
+        origin=origin,
+        winelist_id=list_id,
+    )
+    db.session.add(new_wine)
+    db.session.commit()
+
+    return jsonify(new_wine.to_json()), 201
 
 
 @app.route("/create_wine_list", methods=["POST"])

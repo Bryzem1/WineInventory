@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import {
     MaterialReactTable,
-    useMaterialReactTable,
     type MRT_ColumnDef,
 } from "material-react-table";
+import { MRT_Localization_ZH_HANS } from 'material-react-table/locales/zh-Hans';
 
 import { Wine } from "../utils/types";
 
-const Table = ({ data }: { data: Wine[] }) => {
+const WineTable = ({ data }: { data: Wine[] }) => {
     const columns = useMemo<MRT_ColumnDef<Wine>[]>(
         () => [
             {
@@ -35,12 +35,7 @@ const Table = ({ data }: { data: Wine[] }) => {
         []
     );
 
-    const table = useMaterialReactTable({
-        columns,
-        data,
-    });
-
-    return <MaterialReactTable table={table} />;
+    return <MaterialReactTable columns={columns} data={data} localization={MRT_Localization_ZH_HANS}/>;
 };
 
-export default Table;
+export default WineTable;

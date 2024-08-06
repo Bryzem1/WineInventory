@@ -1,19 +1,21 @@
-// Define the WineList type to match the backend model
 export interface WineList {
-  id: number;
-  name: string;
-  createdAt: string;
-  link: string;
-  //   wines: Wine[]; // List of wines associated with the WineList
+    id: number;
+    name: string;
+    createdAt: string;
+    link: string;
+
+    // Not needed for now as we are using id to refetch the specifics wines for a WineList.
+    // wines: Wine[];
 }
 
-// Define the Wine type to match the backend model
 export type Wine = {
-  id: number;
-  name: string;
-  vintage: string;
-  price: number;
-  quantity: number;
-  origin: string;
-  winelist_id: number; // Foreign key linking to the WineList model
+    id: number;
+    name: string;
+    vintage: string;
+    price: number;
+    quantity: number;
+    origin: string;
+
+    // TODO: If we insist on using WineList id to refetch wines, we might not need this field.
+    winelist_id: number; // Foreign key linking to the WineList model
 };

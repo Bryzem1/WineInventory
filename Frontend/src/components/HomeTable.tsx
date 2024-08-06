@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import {
     MaterialReactTable,
-    useMaterialReactTable,
     type MRT_ColumnDef,
 } from "material-react-table";
+import { MRT_Localization_ZH_HANS } from 'material-react-table/locales/zh-Hans';
 import { WineList } from "../utils/types";
 import { Link } from "react-router-dom";
 import { Button } from "@mui/material";
 
-const WineLLTable = ({ data }: { data: WineList[] }) => {
+const HomeTable = ({ data }: { data: WineList[] }) => {
     const columns = useMemo<MRT_ColumnDef<WineList>[]>(
         () => [
             {
@@ -18,9 +18,7 @@ const WineLLTable = ({ data }: { data: WineList[] }) => {
                 Cell: ({ cell }) => (
                     <Button
                         component={Link}
-                        // TODO: figure out how to use route link without a link field in types.ts
-                        // potential solution: using a prefix + {int: id}
-                        to={cell.row.original.link}
+                        to={"http://localhost:5173/wine-list/" + (cell.row.original.id).toString()}
                         variant="contained"
                         sx={{ bgcolor: "#9E7D60" }}
                     >
@@ -37,12 +35,7 @@ const WineLLTable = ({ data }: { data: WineList[] }) => {
         []
     );
 
-    const table = useMaterialReactTable({
-        columns,
-        data,
-    });
-
-    return <MaterialReactTable table={table} />;
+    return <MaterialReactTable columns={columns} data={data} localization={MRT_Localization_ZH_HANS}/>;
 };
 
-export default WineLLTable;
+export default HomeTable;
