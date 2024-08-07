@@ -71,6 +71,34 @@ def create_wine_list():
     return jsonify(new_wine_list.to_json()), 201
 
 
+
+@app.route("/update_wines", methods=["PATCH"])
+def update_wines():
+    data = request.json
+
+    if not isinstance(data, list):
+        return jsonify({"error": "Input should be a list of wine objects"}), 400
+
+    for wine_data in data:
+        wine_id = wine_data.get("id")
+        if not wine_id:
+            continue
+
+        wine = Wine.query.get(wine_id)
+        if not wine:
+            continue
+
+        wine.name = wine_data.get("name", wine.name)
+        wine.vintage = wine_data.get("vintage", wine.vintage)
+        wine.price = wine_data.get("price", wine.price)
+        wine.quantity = wine_data.get("quantity", wine.quantity)
+        wine.origin = wine_data.get("origin", wine.origin)
+
+    db.session.commit()
+
+    return jsonify({"message": "Wines Updated"}), 200
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

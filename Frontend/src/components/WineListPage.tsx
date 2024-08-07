@@ -98,6 +98,9 @@ function WineListPage() {
     const { mutateAsync: createWine, isPending: isCreatingWine } =
         useCreateWine();
 
+    const { mutateAsync: updateWines, isPending: isUpdatingWines } =
+        useUpdateWines();
+
     // Save the results of fetching wines
     const {
         data: fetchedWines = [],
@@ -118,6 +121,12 @@ function WineListPage() {
             await createWine({ ...values, winelist_id: Number(id) }); // Ensure winelist_id is passed as a number
             table.setCreatingRow(null); //exit creating mode
         };
+
+    const handleSaveWines = async () => {
+        if (Object.values(validationErrors).some((error) => !!error)) return;
+        await updateWines(Object.values(editedWines));
+        setEditedWines({});
+    }
 
     const openDeleteConfirmModal = (row: MRT_Row<Wine>) => {
         if (window.confirm("Are you sure you want to delete this wine?")) {
@@ -166,13 +175,13 @@ function WineListPage() {
                 <Button
                     color="success"
                     variant="contained"
-                    // onClick={handleSaveUsers}
+                    onClick={handleSaveWines}
                     // disabled={
-                    //   Object.keys(editedUsers).length === 0 ||
+                    //   Object.keys(editedWines).length === 0 ||
                     //   Object.values(validationErrors).some((error) => !!error)
                     // }
                 >
-                    {/* {isUpdatingUsers ? <CircularProgress size={25} /> : 'Save'} */}
+                    {isUpdatingWines ? <CircularProgress size={25} /> : 'Save'}
                 </Button>
                 {Object.values(validationErrors).some((error) => !!error) && (
                     <Typography color="error">
@@ -258,6 +267,59 @@ function useCreateWine() {
         },
     });
 }
+
+
+//UPDATE hook (put user in api)
+function useUpdateWines() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: async (wines: Wine[]) => {
+        const response = await fetch(
+            `http://127.0.0.1:5000/update_wines`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(wines),
+            }
+        );
+        if (!response.ok) {
+            throw new Error("Error updating wine");
+        }
+        return response.json();
+      },
+      //client side optimistic update
+      onMutate: async (newWines: Wine[]) => {
+        await queryClient.cancelQueries({queryKey: ['wines']}); // Cancel any outgoing queries so they don't overwrite our optimistic update
+
+        const previousWines = queryClient.getQueryData<Wine[]>(['wines']);
+
+        queryClient.setQueryData(
+            ['wines'],
+            (prevWines: Wine[] = []) => {
+                const updatedWines = prevWines.map((wine) => {
+                    const newWine = newWines.find((nw) => nw.id === wine.id);
+                    return newWine ? { ...wine, ...newWine } : wine;
+                });
+                return updatedWines;
+            }
+        );
+
+        return { previousWines };
+      },
+      onError: (err, newWines, context) => {
+          queryClient.setQueryData(['wines'], context?.previousWines); // Roll back to the previous state if mutation fails
+      },
+      onSettled: () => {
+          queryClient.invalidateQueries({queryKey: ['wines']}); // Refetch wines after mutation
+      },
+
+    });
+  }
+
+
 
 export default WineListPage;
 
