@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
     MaterialReactTable,
@@ -37,7 +37,14 @@ function WineListPage() {
     const [validationErrors, setValidationErrors] = useState<
         Record<string, string | undefined>
     >({});
+
+    // Keep track of all rows/cells that have been edited
     const [editedWines, setEditedWines] = useState<Record<string, Wine>>({});
+
+    // Eebugging:
+    // useEffect(() => {
+    //     console.log("Updated editedUsers:", editedWines);
+    // }, [editedWines]);
 
     const columns = useMemo<MRT_ColumnDef<Wine>[]>(
         () => [
@@ -51,7 +58,7 @@ function WineListPage() {
                     error: !!validationErrors[cell.id],
                     helperText: validationErrors[cell.id],
 
-                    //store edited wine in state to be saved later
+                    // onBlur: happens when the input loses focus
                     onBlur: (event) => {
                         const validationError = !validateRequired(
                             event.currentTarget.value
@@ -62,10 +69,15 @@ function WineListPage() {
                             ...validationErrors,
                             [cell.id]: validationError,
                         });
-                        setEditedWines({
-                            ...editedWines,
-                            [row.id]: row.original,
-                        });
+                        setEditedWines((prevEditedWines) => ({
+                            ...prevEditedWines,
+                            [row.id]: {
+                                ...prevEditedWines[row.id],
+                                // Make sure to specify the id field as we use it later to update in the backend
+                                id: Number(row.id),
+                                name: event.target.value,
+                            },
+                        }));
                     },
                 }),
             },
@@ -73,35 +85,135 @@ function WineListPage() {
                 accessorKey: "vintage",
                 header: "年份",
                 size: 150,
+                muiEditTextFieldProps: ({ cell, row }) => ({
+                    type: "number",
+                    required: true,
+                    error: !!validationErrors[cell.id],
+                    helperText: validationErrors[cell.id],
+
+                    onBlur: (event) => {
+                        const validationError = !validateRequired(
+                            event.currentTarget.value
+                        )
+                            ? "年份不能为空"
+                            : undefined;
+                        setValidationErrors({
+                            ...validationErrors,
+                            [cell.id]: validationError,
+                        });
+                        setEditedWines((prevEditedWines) => ({
+                            ...prevEditedWines,
+                            [row.id]: {
+                                ...prevEditedWines[row.id],
+                                id: Number(row.id),
+                                vintage: Number(event.target.value),
+                            },
+                        }));
+                    },
+                }),
             },
             {
                 accessorKey: "price",
                 header: "价格",
                 size: 150,
+                muiEditTextFieldProps: ({ cell, row }) => ({
+                    type: "number",
+                    required: true,
+                    error: !!validationErrors[cell.id],
+                    helperText: validationErrors[cell.id],
+
+                    onBlur: (event) => {
+                        const validationError = !validateRequired(
+                            event.currentTarget.value
+                        )
+                            ? "价格不能为空"
+                            : undefined;
+                        setValidationErrors({
+                            ...validationErrors,
+                            [cell.id]: validationError,
+                        });
+                        setEditedWines((prevEditedWines) => ({
+                            ...prevEditedWines,
+                            [row.id]: {
+                                ...prevEditedWines[row.id],
+                                id: Number(row.id),
+                                price: Number(event.target.value),
+                            },
+                        }));
+                    },
+                }),
             },
             {
                 accessorKey: "quantity",
                 header: "数量/支",
                 size: 150,
+                muiEditTextFieldProps: ({ cell, row }) => ({
+                    type: "number",
+                    required: true,
+                    error: !!validationErrors[cell.id],
+                    helperText: validationErrors[cell.id],
+
+                    onBlur: (event) => {
+                        const validationError = !validateRequired(
+                            event.currentTarget.value
+                        )
+                            ? "数量不能为空"
+                            : undefined;
+                        setValidationErrors({
+                            ...validationErrors,
+                            [cell.id]: validationError,
+                        });
+                        setEditedWines((prevEditedWines) => ({
+                            ...prevEditedWines,
+                            [row.id]: {
+                                ...prevEditedWines[row.id],
+                                id: Number(row.id),
+                                quantity: Number(event.target.value),
+                            },
+                        }));
+                    },
+                }),
             },
 
             {
                 accessorKey: "origin",
                 header: "产地",
                 size: 150,
+                muiEditTextFieldProps: ({ cell, row }) => ({
+                    type: "text",
+                    required: true,
+                    error: !!validationErrors[cell.id],
+                    helperText: validationErrors[cell.id],
+
+                    onBlur: (event) => {
+                        const validationError = !validateRequired(
+                            event.currentTarget.value
+                        )
+                            ? "产地不能为空"
+                            : undefined;
+                        setValidationErrors({
+                            ...validationErrors,
+                            [cell.id]: validationError,
+                        });
+                        setEditedWines((prevEditedWines) => ({
+                            ...prevEditedWines,
+                            [row.id]: {
+                                ...prevEditedWines[row.id],
+                                id: Number(row.id),
+                                origin: event.target.value,
+                            },
+                        }));
+                    },
+                }),
             },
         ],
-        []
+        [editedWines, validationErrors]
     );
 
-    // Calling hook functions (create, get, update, delete)
+    // Calling hook functions (CREATE, GET, UPDATE, DELETE)
     const { mutateAsync: createWine, isPending: isCreatingWine } =
         useCreateWine();
 
-    const { mutateAsync: updateWines, isPending: isUpdatingWines } =
-        useUpdateWines();
-
-    // Save the results of fetching wines
     const {
         data: fetchedWines = [],
         isError: isLoadingWinesError,
@@ -109,14 +221,20 @@ function WineListPage() {
         isLoading: isLoadingWines,
     } = useGetWines(id);
 
+    const { mutateAsync: updateWines, isPending: isUpdatingWines } =
+        useUpdateWines();
+
+    // TODO:
+    // const { mutateAsync: deleteWine, isPending: isDeletingWine } = useDeleteWine();
+
+    // CREATE onclick handler
     const handleCreateWine: MRT_TableOptions<Wine>["onCreatingRowSave"] =
         async ({ values, table }) => {
-            // No need to validate wines for now.
-            // const newValidationErrors = validateUser(values);
-            // if (Object.values(newValidationErrors).some((error) => error)) {
-            //     setValidationErrors(newValidationErrors);
-            //     return;
-            // }
+            const newValidationErrors = validateWine(values);
+            if (Object.values(newValidationErrors).some((error) => error)) {
+                setValidationErrors(newValidationErrors);
+                return;
+            }
             setValidationErrors({});
             await createWine({ ...values, winelist_id: Number(id) }); // Ensure winelist_id is passed as a number
             table.setCreatingRow(null); //exit creating mode
@@ -126,7 +244,7 @@ function WineListPage() {
         if (Object.values(validationErrors).some((error) => !!error)) return;
         await updateWines(Object.values(editedWines));
         setEditedWines({});
-    }
+    };
 
     const openDeleteConfirmModal = (row: MRT_Row<Wine>) => {
         if (window.confirm("Are you sure you want to delete this wine?")) {
@@ -181,12 +299,10 @@ function WineListPage() {
                     //   Object.values(validationErrors).some((error) => !!error)
                     // }
                 >
-                    {isUpdatingWines ? <CircularProgress size={25} /> : 'Save'}
+                    {isUpdatingWines ? <CircularProgress size={25} /> : "Save"}
                 </Button>
                 {Object.values(validationErrors).some((error) => !!error) && (
-                    <Typography color="error">
-                        Fix errors before submitting
-                    </Typography>
+                    <Typography color="error">请填写所有必填字段</Typography>
                 )}
             </Box>
         ),
@@ -268,59 +384,63 @@ function useCreateWine() {
     });
 }
 
-
 //UPDATE hook (put user in api)
 function useUpdateWines() {
     const queryClient = useQueryClient();
 
     return useMutation({
-      mutationFn: async (wines: Wine[]) => {
-        const response = await fetch(
-            `http://127.0.0.1:5000/update_wines`,
-            {
+        mutationFn: async (wines: Wine[]) => {
+            const response = await fetch(`http://127.0.0.1:5000/update_wines`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(wines),
+            });
+            if (!response.ok) {
+                throw new Error("Error updating wine");
             }
-        );
-        if (!response.ok) {
-            throw new Error("Error updating wine");
-        }
-        return response.json();
-      },
-      //client side optimistic update
-      onMutate: async (newWines: Wine[]) => {
-        await queryClient.cancelQueries({queryKey: ['wines']}); // Cancel any outgoing queries so they don't overwrite our optimistic update
+            return response.json();
+        },
+        //client side optimistic update
+        onMutate: async (newWines: Wine[]) => {
+            await queryClient.cancelQueries({ queryKey: ["wines"] }); // Cancel any outgoing queries so they don't overwrite our optimistic update
 
-        const previousWines = queryClient.getQueryData<Wine[]>(['wines']);
+            const previousWines = queryClient.getQueryData<Wine[]>(["wines"]);
 
-        queryClient.setQueryData(
-            ['wines'],
-            (prevWines: Wine[] = []) => {
+            queryClient.setQueryData(["wines"], (prevWines: Wine[] = []) => {
                 const updatedWines = prevWines.map((wine) => {
                     const newWine = newWines.find((nw) => nw.id === wine.id);
                     return newWine ? { ...wine, ...newWine } : wine;
                 });
                 return updatedWines;
-            }
-        );
+            });
 
-        return { previousWines };
-      },
-      onError: (err, newWines, context) => {
-          queryClient.setQueryData(['wines'], context?.previousWines); // Roll back to the previous state if mutation fails
-      },
-      onSettled: () => {
-          queryClient.invalidateQueries({queryKey: ['wines']}); // Refetch wines after mutation
-      },
-
+            return { previousWines };
+        },
+        onError: (err, newWines, context) => {
+            queryClient.setQueryData(["wines"], context?.previousWines); // Roll back to the previous state if mutation fails
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["wines"] }); // Refetch wines after mutation
+        },
     });
-  }
-
-
+}
 
 export default WineListPage;
 
 const validateRequired = (value: string) => !!value.length;
+
+function validateWine(wine: Wine) {
+    return {
+        name: !validateRequired(wine.name) ? "名字不能为空" : "",
+        vintage: !validateRequired(wine.vintage.toString())
+            ? "年份不能为空"
+            : "",
+        price: !validateRequired(wine.price.toString()) ? "价格不能为空" : "",
+        quantity: !validateRequired(wine.quantity.toString())
+            ? "数量不能为空"
+            : "",
+        origin: !validateRequired(wine.origin) ? "产地不能为空" : "",
+    };
+}

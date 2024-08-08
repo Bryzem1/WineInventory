@@ -11,7 +11,7 @@ export interface WineList {
 export type Wine = {
     id: number;
     name: string;
-    vintage: string;
+    vintage: number;
     price: number;
     quantity: number;
     origin: string;
