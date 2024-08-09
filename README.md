@@ -47,4 +47,5 @@ In the setup, choose the option "format on save".
 
 ## Notes
 
-TBD: Disable Save button
+-   Cell error messages(e.g. 名字不能为空， 年份不能为空) and overall error messaeg(请填写所有必填字段后提交) are working correctly now.
+-   Wine ID recycling problem needs to be fixed.

@@ -1,8 +1,7 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
     MaterialReactTable,
-    // createRow,
     type MRT_ColumnDef,
     type MRT_Row,
     type MRT_TableOptions,
@@ -18,16 +17,9 @@ import {
 } from "@mui/material";
 import { MRT_Localization_ZH_HANS } from "material-react-table/locales/zh-Hans";
 
-import {
-    QueryClient,
-    QueryClientProvider,
-    useMutation,
-    useQuery,
-    useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Wine } from "../utils/types";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 function WineListPage() {
@@ -38,10 +30,9 @@ function WineListPage() {
         Record<string, string | undefined>
     >({});
 
-    // Keep track of all rows/cells that have been edited
     const [editedWines, setEditedWines] = useState<Record<string, Wine>>({});
 
-    // Eebugging:
+    // Debugging:
     // useEffect(() => {
     //     console.log("Updated editedUsers:", editedWines);
     // }, [editedWines]);
@@ -58,7 +49,6 @@ function WineListPage() {
                     error: !!validationErrors[cell.id],
                     helperText: validationErrors[cell.id],
 
-                    // onBlur: happens when the input loses focus
                     onBlur: (event) => {
                         const validationError = !validateRequired(
                             event.currentTarget.value
@@ -73,8 +63,7 @@ function WineListPage() {
                             ...prevEditedWines,
                             [row.id]: {
                                 ...prevEditedWines[row.id],
-                                // Make sure to specify the id field as we use it later to update in the backend
-                                id: Number(row.id),
+                                id: Number(row.id), // specify the wine's id for the update logic later
                                 name: event.target.value,
                             },
                         }));
@@ -224,10 +213,10 @@ function WineListPage() {
     const { mutateAsync: updateWines, isPending: isUpdatingWines } =
         useUpdateWines();
 
-    // TODO:
-    // const { mutateAsync: deleteWine, isPending: isDeletingWine } = useDeleteWine();
+    const { mutateAsync: deleteWine, isPending: isDeletingWine } =
+        useDeleteWine();
 
-    // CREATE onclick handler
+    // 添加新酒 onclick handler
     const handleCreateWine: MRT_TableOptions<Wine>["onCreatingRowSave"] =
         async ({ values, table }) => {
             const newValidationErrors = validateWine(values);
@@ -236,19 +225,23 @@ function WineListPage() {
                 return;
             }
             setValidationErrors({});
-            await createWine({ ...values, winelist_id: Number(id) }); // Ensure winelist_id is passed as a number
-            table.setCreatingRow(null); //exit creating mode
+
+            await createWine({ ...values, winelist_id: Number(id) });
+            table.setCreatingRow(null); // exit creating mode
         };
 
+    // 保存 onclick handler
     const handleSaveWines = async () => {
         if (Object.values(validationErrors).some((error) => !!error)) return;
+
         await updateWines(Object.values(editedWines));
         setEditedWines({});
     };
 
+    // DELETE confirmation pop-up window
     const openDeleteConfirmModal = (row: MRT_Row<Wine>) => {
         if (window.confirm("Are you sure you want to delete this wine?")) {
-            // deleteUser(row.original.id);
+            deleteWine(row.original.id);
         }
     };
 
@@ -261,14 +254,17 @@ function WineListPage() {
         enableEditing: true,
         enableRowActions: true,
         positionActionsColumn: "last",
-        // Copilot fixed row.id => row.id.toString()
-        getRowId: (row) => row.id.toString(),
-        // muiToolbarAlertBannerProps: isLoadingWinesError
-        // ? {
-        //     color: 'error',
-        //     children: 'Error loading data',
-        //   }
-        // : undefined,
+
+        // MRT template only has "getRowId: (row) => row.id".
+        // But here it expects a string, and it also caused null pointer exception so I added the null check
+        getRowId: (row) => (row.id ? row.id.toString() : "undefined-row"),
+
+        muiToolbarAlertBannerProps: isLoadingWinesError
+            ? {
+                  color: "error",
+                  children: "Error loading data",
+              }
+            : undefined,
         muiTableContainerProps: {
             sx: {
                 minHeight: "500px",
@@ -294,15 +290,17 @@ function WineListPage() {
                     color="success"
                     variant="contained"
                     onClick={handleSaveWines}
-                    // disabled={
-                    //   Object.keys(editedWines).length === 0 ||
-                    //   Object.values(validationErrors).some((error) => !!error)
-                    // }
+                    disabled={
+                        Object.keys(editedWines).length === 0 ||
+                        Object.values(validationErrors).some((error) => !!error)
+                    }
                 >
-                    {isUpdatingWines ? <CircularProgress size={25} /> : "Save"}
+                    {isUpdatingWines ? <CircularProgress size={25} /> : "保存"}
                 </Button>
                 {Object.values(validationErrors).some((error) => !!error) && (
-                    <Typography color="error">请填写所有必填字段</Typography>
+                    <Typography color="error">
+                        请填写所有必填字段后保存
+                    </Typography>
                 )}
             </Box>
         ),
@@ -311,18 +309,18 @@ function WineListPage() {
                 variant="contained"
                 sx={{ bgcolor: "#9E7D60" }}
                 onClick={() => {
-                    table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-                    //or you can pass in a row object to set default values with the `createRow` helper function
-                    // table.setCreatingRow(
-                    //   createRow(table, {
-                    //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-                    //   }),
-                    // );
+                    table.setCreatingRow(true);
                 }}
             >
                 添加新酒
             </Button>
         ),
+        state: {
+            isLoading: isLoadingWines,
+            isSaving: isCreatingWine || isUpdatingWines || isDeletingWine,
+            showAlertBanner: isLoadingWinesError,
+            showProgressBars: isFetchingWines,
+        },
     });
 
     return <MaterialReactTable table={table} />;
@@ -402,7 +400,6 @@ function useUpdateWines() {
             }
             return response.json();
         },
-        //client side optimistic update
         onMutate: async (newWines: Wine[]) => {
             await queryClient.cancelQueries({ queryKey: ["wines"] }); // Cancel any outgoing queries so they don't overwrite our optimistic update
 
@@ -418,7 +415,8 @@ function useUpdateWines() {
 
             return { previousWines };
         },
-        onError: (err, newWines, context) => {
+        // prefixing with _ to indicate that we are not using these variables
+        onError: (_err, _newWines, context) => {
             queryClient.setQueryData(["wines"], context?.previousWines); // Roll back to the previous state if mutation fails
         },
         onSettled: () => {
@@ -427,7 +425,29 @@ function useUpdateWines() {
     });
 }
 
-export default WineListPage;
+function useDeleteWine() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (wineId: number) => {
+            const response = await fetch(
+                `http://127.0.0.1:5000/delete_wine/${wineId}`,
+                {
+                    method: "DELETE",
+                }
+            );
+            if (!response.ok) {
+                throw new Error("Error creating wine");
+            }
+            return response.json();
+        },
+        onMutate: (wineId: number) => {
+            queryClient.setQueryData(["wines"], (prevUsers: any) =>
+                prevUsers?.filter((wine: Wine) => wine.id !== wineId)
+            );
+        },
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ["wines"] }),
+    });
+}
 
 const validateRequired = (value: string) => !!value.length;
 
@@ -444,3 +464,5 @@ function validateWine(wine: Wine) {
         origin: !validateRequired(wine.origin) ? "产地不能为空" : "",
     };
 }
+
+export default WineListPage;

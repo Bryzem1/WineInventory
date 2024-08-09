@@ -21,6 +21,17 @@ def get_wines(list_id):
     json_wines = list(map(lambda x: x.to_json(), wines))
     return jsonify({"wines": json_wines})
 
+@app.route("/create_wine_list", methods=["POST"])
+def create_wine_list():
+    name = request.json.get("name")
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    new_wine_list = WineList(name=name)
+    db.session.add(new_wine_list)
+    db.session.commit()
+
+    return jsonify(new_wine_list.to_json()), 201
 
 @app.route("/create_wine/<int:list_id>", methods=["POST"])
 def create_wine(list_id):
@@ -57,21 +68,6 @@ def create_wine(list_id):
 
     return jsonify(new_wine.to_json()), 201
 
-
-@app.route("/create_wine_list", methods=["POST"])
-def create_wine_list():
-    name = request.json.get("name")
-    if not name:
-        return jsonify({"error": "Name is required"}), 400
-
-    new_wine_list = WineList(name=name)
-    db.session.add(new_wine_list)
-    db.session.commit()
-
-    return jsonify(new_wine_list.to_json()), 201
-
-
-
 @app.route("/update_wines", methods=["PATCH"])
 def update_wines():
     data = request.json
@@ -98,6 +94,16 @@ def update_wines():
 
     return jsonify({"message": "Wines Updated"}), 200
 
+@app.route("/delete_wine/<int:wine_id>", methods=["DELETE"])
+def delete_wine(wine_id):
+    wine = Wine.query.get(wine_id)
+    if not wine:
+        return jsonify({"error": "Wine not found"}), 404
+
+    db.session.delete(wine)
+    db.session.commit()
+
+    return jsonify({"message": "Wine Deleted"}), 200
 
 if __name__ == "__main__":
     with app.app_context():
